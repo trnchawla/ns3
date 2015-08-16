@@ -77,10 +77,12 @@ void Vehicle::DoDispose(){
 }
 void Vehicle::StartApplication(){
 	NS_LOG_FUNCTION(this);
-
+	//we can get only one object of ns3::udpsocketfactory with an instance of this class
+	TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
 	if(m_socket == 0){
-		TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
+
 		m_socket = Socket::CreateSocket(GetNode(), tid);
+		m_socket->SetAllowBroadcast (true);
 		if(Ipv4Address::IsMatchingType(m_peerAddress) == true){
 			m_socket->Bind();
 			m_socket->Connect(InetSocketAddress(Ipv4Address::ConvertFrom(m_peerAddress),m_peerPort));
@@ -90,7 +92,12 @@ void Vehicle::StartApplication(){
 			m_socket->Connect(Inet6SocketAddress(Ipv6Address::ConvertFrom(m_peerAddress),m_peerPort));
 		}
 	}
-	m_socket->SetRecvCallback(MakeCallback(&Vehicle::HandleRead,this));
+	//creating receiver at each vehicle
+	Ptr<Socket> recvSink = Socket::CreateSocket(GetNode(), tid);
+	InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (), m_peerPort);
+	recvSink->Bind (local);
+	recvSink->SetRecvCallback (MakeCallback (&Vehicle::HandleRead,this));
+	//m_socket->SetRecvCallback(MakeCallback(&Vehicle::HandleRead,this));
 	ScheduleTransmit(Seconds(1.0));
 }
 void Vehicle::StopApplication(){

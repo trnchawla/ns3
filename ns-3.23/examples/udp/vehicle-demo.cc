@@ -30,16 +30,16 @@ int main(int argc,char *argv[]){
 
 	serverAddress = Address(i.GetAddress(3));
 	NS_LOG_INFO("Create Applications");
-	uint16_t port = 9;
+	uint16_t port = 80;
 	UdpEchoServerHelper server(port);
-	ApplicationContainer apps =server.Install(n.Get(3));
+	/*ApplicationContainer apps =server.Install(n.Get(3));
 	apps.Start(Seconds(1.0));
-	apps.Stop(Seconds(10.0));
-
+	apps.Stop(Seconds(10.0));*/
+	ApplicationContainer apps;
 	uint32_t packetSize = 1024;
 	uint32_t maxPacketCount = 1;
 	Time interPacketInterval = Seconds(1.0);
-	VehicleHelper vehicle(serverAddress,port);
+	VehicleHelper vehicle(Ipv4Address("255.255.255.255"),port);
 	vehicle.SetAttribute("MaxPackets",UintegerValue(maxPacketCount));
 	vehicle.SetAttribute("Interval",TimeValue(interPacketInterval));
 	vehicle.SetAttribute("PacketSize",UintegerValue(packetSize));

@@ -92,7 +92,7 @@ static void GenerateTraffic (Ptr<Socket> socket, uint32_t pktSize,
 
 
 int main (int argc, char *argv[])
-{
+{//LogComponentEnable("WifiSimpleAdhoc",LOG_LEVEL_INFO);
   std::string phyMode ("DsssRate1Mbps");
   double rss = -80;  // -dBm
   uint32_t packetSize = 1000; // bytes
@@ -122,7 +122,7 @@ int main (int argc, char *argv[])
                       StringValue (phyMode));
 
   NodeContainer c;
-  c.Create (2);
+  c.Create (3);
 
   // The below set of helpers will help us to put together the wifi NICs we want
   WifiHelper wifi;
@@ -178,6 +178,12 @@ int main (int argc, char *argv[])
   InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (), 80);
   recvSink->Bind (local);
   recvSink->SetRecvCallback (MakeCallback (&ReceivePacket));
+
+
+   Ptr<Socket> recvSink1 = Socket::CreateSocket (c.Get (2), tid);
+   InetSocketAddress local1 = InetSocketAddress (Ipv4Address::GetAny (), 80);
+   recvSink1->Bind (local1);
+   recvSink1->SetRecvCallback (MakeCallback (&ReceivePacket));
 
   Ptr<Socket> source = Socket::CreateSocket (c.Get (1), tid);
   InetSocketAddress remote = InetSocketAddress (Ipv4Address ("255.255.255.255"), 80);

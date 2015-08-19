@@ -73,7 +73,7 @@ private:
 	Address m_peerAddress;
 	uint16_t m_peerPort;
 	EventId m_sendEvent;
-	uint8_t lane;
+	uint16_t lane;
 
 	TracedCallback<Ptr<const Packet> > m_txTrace;
 

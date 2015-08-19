@@ -11,9 +11,9 @@
 namespace ns3{
 class VehicleHelper{
 public:
-	VehicleHelper(Address ip,uint16_t port);
-	VehicleHelper(Ipv4Address ip,uint16_t port);
-	VehicleHelper(Ipv6Address,uint16_t port);
+	VehicleHelper(Address ip,uint16_t port,uint16_t lane);
+	VehicleHelper(Ipv4Address ip,uint16_t port,uint16_t lane);
+	VehicleHelper(Ipv6Address,uint16_t port,uint16_t lane);
 	void SetAttribute(std::string name,const AttributeValue &value);
 	void SetFill(Ptr<Application> app,std::string fill);
 	void SetFill(Ptr<Application> app,uint8_t fill,uint32_t dataLength);

@@ -1,19 +1,22 @@
 #include "ns3/applications-module.h"
 namespace ns3{
-VehicleHelper::VehicleHelper(Address address, uint16_t port){
+VehicleHelper::VehicleHelper(Address address, uint16_t port, uint16_t lane){
 	m_factory.SetTypeId(Vehicle::GetTypeId());
 	SetAttribute("RemoteAddress",AddressValue(address));
 	SetAttribute("RemotePort",UintegerValue(port));
+	SetAttribute("lane",UintegerValue(lane));
 }
-VehicleHelper::VehicleHelper(Ipv4Address address,uint16_t port){
+VehicleHelper::VehicleHelper(Ipv4Address address,uint16_t port,uint16_t lane){
 	m_factory.SetTypeId(Vehicle::GetTypeId());
 	SetAttribute("RemoteAddress",AddressValue(address));
 	SetAttribute("RemotePort",UintegerValue(port));
+	SetAttribute("lane",UintegerValue(lane));
 }
-VehicleHelper::VehicleHelper(Ipv6Address address,uint16_t port){
+VehicleHelper::VehicleHelper(Ipv6Address address,uint16_t port,uint16_t lane){
 	m_factory.SetTypeId(Vehicle::GetTypeId());
 	SetAttribute("RemoteAddress",AddressValue(address));
 	SetAttribute("RemotePort",UintegerValue(port));
+	SetAttribute("lane",UintegerValue(lane));
 }
 void VehicleHelper::SetAttribute(std::string name,const AttributeValue &value){
 	m_factory.Set(name,value);

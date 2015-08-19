@@ -1,9 +1,35 @@
 #include "vehicle.h"
+/*     #  |  ||  |  #
+	   #  |  ||  |  #
+	   #  |  ||  |  #
+	   #  |  ||  |  #
+######## 0|1 ||  |  #######
+________            2_______
+                    3
+========            =======
+_______7            _______
+       6
+########  |  || 5|4 #######
+	   #  |  ||  |  #
+       #  |  ||  |  #
+       #  |  ||  |  #
+	   #  |  ||  |  #
+
+Lane of Vehicle   Lanes to be locked
+0                 0,6,7
+1                 1,2,3
+2                 0,1,2
+3                 3,4,5
+4                 2,3,4
+5                 5,6,7
+6                 4,5,6
+7                 0,1,7
+	   */
 namespace ns3{
 NS_LOG_COMPONENT_DEFINE ("VehicleApplication");
 NS_OBJECT_ENSURE_REGISTERED (Vehicle);
 int Vehicle::totalNodes=0;
-uint8_t Vehicle::lockingStructure ={{0,6,7},{1,2,3},{0,1,2},{3,4,5},{2,3,4},{5,6,7},{4,5,6},{0,1,7}};
+uint8_t Vehicle::lockingStructure[8][3] ={{0,6,7},{1,2,3},{0,1,2},{3,4,5},{2,3,4},{5,6,7},{4,5,6},{0,1,7}};
 TypeId Vehicle::GetTypeId(void){
 	static TypeId tid = TypeId("ns3::Vehicle")
 			.SetParent<Application>()
@@ -29,6 +55,11 @@ TypeId Vehicle::GetTypeId(void){
 					UintegerValue(0),
 					MakeUintegerAccessor(&Vehicle::m_peerPort),
 					MakeUintegerChecker<uint16_t>())
+			.AddAttribute("lane",
+					"Lane of the vehicle",
+					UintegerValue(0),
+					MakeUintegerAccessor(&Vehicle::lane),
+					MakeUintegerChecker<uint16_t>())
 			.AddAttribute("PacketSize",
 					"Size of echo data in outbount packets",
 					UintegerValue(100),
@@ -43,7 +74,7 @@ TypeId Vehicle::GetTypeId(void){
 
 Vehicle::Vehicle(){
 	totalNodes++;
-	NS_LOG_FUNCTION(this<<totalNodes);
+	NS_LOG_FUNCTION(this<<totalNodes<<" "<<lane<<"  "<<m_peerPort);
 	m_sent = 0;
 	m_socket = 0;
 	m_sendEvent = EventId();
@@ -188,7 +219,7 @@ void Vehicle::Send(){
 
 	if(Ipv4Address::IsMatchingType(m_peerAddress)){
 		NS_LOG_INFO("At time "<<Simulator::Now().GetSeconds()<<"s client sent "<<m_size <<" bytes to "<<
-				Ipv4Address::ConvertFrom(m_peerAddress)<<" port "<<m_peerPort);
+				Ipv4Address::ConvertFrom(m_peerAddress)<<" port "<<m_peerPort<<" lane number "<<lane);
 	}
 	else if(Ipv6Address::IsMatchingType(m_peerAddress)){
 		NS_LOG_INFO("At time "<<Simulator::Now().GetSeconds()<<"s client sent "<<m_size <<" bytes to "<<

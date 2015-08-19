@@ -6,6 +6,33 @@
  */
 #include "ns3/network-module.h"
 #include "ns3/core-module.h"
+
+/*     #  |  ||  |  #
+	   #  |  ||  |  #
+	   #  |  ||  |  #
+	   #  |  ||  |  #
+######## 0|1 ||  |  #######
+________            2_______
+                    3
+========            =======
+_______7            _______
+       6
+########  |  || 5|4 #######
+	   #  |  ||  |  #
+       #  |  ||  |  #
+       #  |  ||  |  #
+	   #  |  ||  |  #
+
+Lane of Vehicle   Lanes to be locked
+0                 0,6,7
+1                 1,2,3
+2                 0,1,2
+3                 3,4,5
+4                 2,3,4
+5                 5,6,7
+6                 4,5,6
+7                 0,1,7
+	   */
 #ifndef SCRATCH_VEHICLE_H_
 #define SCRATCH_VEHICLE_H_
 namespace ns3{
@@ -14,6 +41,8 @@ class Vehicle:public Application
 {
 public:
 	static TypeId GetTypeId(void);
+	static int totalNodes;
+	static uint8_t lockingStructure[8][3];
 	Vehicle();
 	virtual ~Vehicle();
 	void setRemote(Ipv4Address ip,uint16_t port);
@@ -44,6 +73,7 @@ private:
 	Address m_peerAddress;
 	uint16_t m_peerPort;
 	EventId m_sendEvent;
+	uint8_t lane;
 
 	TracedCallback<Ptr<const Packet> > m_txTrace;
 

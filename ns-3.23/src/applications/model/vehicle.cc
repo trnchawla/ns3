@@ -2,6 +2,8 @@
 namespace ns3{
 NS_LOG_COMPONENT_DEFINE ("VehicleApplication");
 NS_OBJECT_ENSURE_REGISTERED (Vehicle);
+int Vehicle::totalNodes=0;
+uint8_t Vehicle::lockingStructure ={{0,6,7},{1,2,3},{0,1,2},{3,4,5},{2,3,4},{5,6,7},{4,5,6},{0,1,7}};
 TypeId Vehicle::GetTypeId(void){
 	static TypeId tid = TypeId("ns3::Vehicle")
 			.SetParent<Application>()
@@ -40,7 +42,8 @@ TypeId Vehicle::GetTypeId(void){
 }
 
 Vehicle::Vehicle(){
-	NS_LOG_FUNCTION(this);
+	totalNodes++;
+	NS_LOG_FUNCTION(this<<totalNodes);
 	m_sent = 0;
 	m_socket = 0;
 	m_sendEvent = EventId();
@@ -49,7 +52,8 @@ Vehicle::Vehicle(){
 }
 
 Vehicle::~Vehicle(){
-	NS_LOG_FUNCTION(this);
+	totalNodes--;
+	NS_LOG_FUNCTION(this<<totalNodes);
 	m_socket = 0;
 	delete[] m_data;
 	m_datasize = 0;

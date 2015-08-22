@@ -36,7 +36,21 @@ Lane of Vehicle   Lanes to be locked
 #ifndef SCRATCH_VEHICLE_H_
 #define SCRATCH_VEHICLE_H_
 namespace ns3{
-
+struct request_msg{
+	uint16_t type;
+	uint16_t vid;
+	uint16_t lid;
+};
+struct permit_msg{
+	uint16_t type;
+	uint16_t len;
+	uint16_t *plt;
+};
+struct release_msg{
+	uint16_t type;
+	uint16_t vid;
+	uint16_t lid;
+};
 class Vehicle:public Application
 {
 public:
@@ -53,13 +67,16 @@ public:
 	void setFill(std::string fill);
 	void setFill(uint8_t fill, uint32_t datasize);
 	void setFill(uint8_t *fill,uint32_t fillsize,uint32_t datasize);
+	void setLane(uint16_t laneNumber);
 protected:
 	virtual void DoDispose(void);
 private:
 	virtual void StartApplication(void);
 	virtual void StopApplication(void);
 	void ScheduleTransmit(Time dt);
+	void ScheduleRelease(Time dt);
 	void Send(void);
+	void Release(void);
 	void HandleRead(Ptr<Socket> socket);
 	uint32_t m_count; //max number of packets the vehicle can sent
 	Time m_interval; //Packet intersend time
@@ -73,8 +90,16 @@ private:
 	Address m_peerAddress;
 	uint16_t m_peerPort;
 	EventId m_sendEvent;
-	uint16_t lane;
-
+	EventId m_relEvent;
+	uint16_t m_lane;
+	uint16_t m_state;
+	uint16_t m_vid;
+	enum{IDLE,WAITING,PASSING};
+	enum {REQUEST,PERMIT,RELEASE};
+    request_msg REQ_MSG;
+    release_msg REL_MSG;
+    int64_t RequestSendTime, PermitRecTime;
+    Ptr<Socket> recvSink;
 	TracedCallback<Ptr<const Packet> > m_txTrace;
 
 };

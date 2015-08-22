@@ -11,13 +11,14 @@
 namespace ns3{
 class VehicleHelper{
 public:
-	VehicleHelper(Address ip,uint16_t port,uint16_t lane);
-	VehicleHelper(Ipv4Address ip,uint16_t port,uint16_t lane);
-	VehicleHelper(Ipv6Address,uint16_t port,uint16_t lane);
+	VehicleHelper(Address ip,uint16_t port);
+	VehicleHelper(Ipv4Address ip,uint16_t port);
+	VehicleHelper(Ipv6Address,uint16_t port);
 	void SetAttribute(std::string name,const AttributeValue &value);
 	void SetFill(Ptr<Application> app,std::string fill);
 	void SetFill(Ptr<Application> app,uint8_t fill,uint32_t dataLength);
 	void SetFill(Ptr<Application> app,uint8_t *fill,uint32_t fillLength,uint32_t dataLength);
+	void SetLane(Ptr<Application> app, uint16_t laneNumber);
 	ApplicationContainer Install(Ptr<Node> node) const;
 	ApplicationContainer Install(std::string nodeName) const;
 	ApplicationContainer Install(NodeContainer c) const;

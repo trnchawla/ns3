@@ -9,7 +9,8 @@ NS_LOG_COMPONENT_DEFINE("VehicleDemo");
 
 int main(int argc,char *argv[]){
 	LogComponentEnable("VehicleDemo",LOG_LEVEL_ALL);
-	LogComponentEnable("VehicleApplication",LOG_LEVEL_ALL);
+	//LogComponentEnable("VehicleApplication",LOG_LEVEL_ALL);
+	LogComponentEnable("Controller",LOG_LEVEL_ALL);
 	Address serverAddress;
 	NS_LOG_INFO("Create Nodes");
 	NodeContainer n;
@@ -39,25 +40,26 @@ int main(int argc,char *argv[]){
 	uint32_t packetSize = 1024;
 	uint32_t maxPacketCount = 1;
 	Time interPacketInterval = Seconds(1.0);
-	uint16_t lane = 1;
-	VehicleHelper vehicle(Ipv4Address("255.255.255.255"),port,lane);
+	VehicleHelper vehicle(Ipv4Address("255.255.255.255"),port);
 	vehicle.SetAttribute("MaxPackets",UintegerValue(maxPacketCount));
 	vehicle.SetAttribute("Interval",TimeValue(interPacketInterval));
 	vehicle.SetAttribute("PacketSize",UintegerValue(packetSize));
 	NodeContainer client;
-	/*client.Add(n.Get(0));
+	client.Add(n.Get(0));
 	client.Add(n.Get(1));
-	client.Add(n.Get(2));*/
-	apps = vehicle.Install(n.Get(0));
+	client.Add(n.Get(2));
+	apps = vehicle.Install(client);
+	vehicle.SetLane(apps.Get(0),0);
+	vehicle.SetLane(apps.Get(1),4);
+	vehicle.SetLane(apps.Get(2),7);
 	apps.Start(Seconds(2.0));
-	apps.Stop(Seconds(10.0));
-	vehicle.SetFill(apps.Get(0),"Hello World");
-	vehicle.SetAttribute("lane",UintegerValue(2));
-	apps = vehicle.Install(n.Get(1));
+	apps.Stop(Seconds(20));
+	NodeContainer controller_node;
+	controller_node.Add(n.Get(3));
+	ControllerHelper controller(port);
+	apps = controller.Install(controller_node);
 	apps.Start(Seconds(2.0));
-	apps.Stop(Seconds(10.0));
-	vehicle.SetFill(apps.Get(0),"Tarun");
-	//vehicle.SetFill(apps.Get(2),"Chawla");
+	apps.Stop(Seconds(20));
 	Simulator::Run();
 	Simulator::Destroy();
 	NS_LOG_INFO("Done");

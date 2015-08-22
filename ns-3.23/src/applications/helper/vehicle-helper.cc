@@ -1,22 +1,19 @@
 #include "ns3/applications-module.h"
 namespace ns3{
-VehicleHelper::VehicleHelper(Address address, uint16_t port, uint16_t lane){
+VehicleHelper::VehicleHelper(Address address, uint16_t port){
 	m_factory.SetTypeId(Vehicle::GetTypeId());
 	SetAttribute("RemoteAddress",AddressValue(address));
 	SetAttribute("RemotePort",UintegerValue(port));
-	SetAttribute("lane",UintegerValue(lane));
 }
-VehicleHelper::VehicleHelper(Ipv4Address address,uint16_t port,uint16_t lane){
+VehicleHelper::VehicleHelper(Ipv4Address address,uint16_t port){
 	m_factory.SetTypeId(Vehicle::GetTypeId());
 	SetAttribute("RemoteAddress",AddressValue(address));
 	SetAttribute("RemotePort",UintegerValue(port));
-	SetAttribute("lane",UintegerValue(lane));
-}
-VehicleHelper::VehicleHelper(Ipv6Address address,uint16_t port,uint16_t lane){
+	}
+VehicleHelper::VehicleHelper(Ipv6Address address,uint16_t port){
 	m_factory.SetTypeId(Vehicle::GetTypeId());
 	SetAttribute("RemoteAddress",AddressValue(address));
 	SetAttribute("RemotePort",UintegerValue(port));
-	SetAttribute("lane",UintegerValue(lane));
 }
 void VehicleHelper::SetAttribute(std::string name,const AttributeValue &value){
 	m_factory.Set(name,value);
@@ -29,6 +26,9 @@ void VehicleHelper::SetFill(Ptr<Application> app,uint8_t fill,uint32_t dataLengt
 }
 void VehicleHelper::SetFill(Ptr<Application> app,uint8_t * fill,uint32_t fillLength,uint32_t dataLength){
 	app->GetObject<Vehicle>()->setFill(fill,fillLength,dataLength);
+}
+void VehicleHelper::SetLane(Ptr<Application> app, uint16_t laneNumber){
+	app->GetObject<Vehicle>()->setLane(laneNumber);
 }
 ApplicationContainer VehicleHelper::Install(Ptr<Node> node) const{
 	return ApplicationContainer(InstallPriv(node));

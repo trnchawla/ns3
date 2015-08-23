@@ -40,12 +40,13 @@ public:
 	static TypeId GetTypeId(void);
 	static int16_t lanes[8];
 	static uint16_t lockingStructure[8][3];
+	static int16_t lsl[8];
 	Controller();
 	~Controller();
 	void setFill(uint8_t *fill,uint16_t size);
 	void HandleRead(Ptr<Socket> socket);
 	void addToPlt(uint16_t vid);
-	void addToRp(uint16_t vid);
+	void addToRp(uint16_t vid,uint16_t lid);
 protected:
 	virtual void DoDispose(void);
 private:

@@ -11,6 +11,7 @@ NS_LOG_COMPONENT_DEFINE("Controller");
 NS_OBJECT_ENSURE_REGISTERED (Controller);
 SystemMutex Controller::mutexLanes;
 int16_t Controller::lanes[] = {-1,-1,-1,-1,-1,-1,-1,-1};
+int16_t Controller::lsl[] = {-1,-1,-1,-1,-1,-1,-1,-1};
 uint16_t Controller::lockingStructure[8][3] ={{0,6,7},{1,2,3},{0,1,2},{3,4,5},{2,3,4},{5,6,7},{4,5,6},{0,1,7}};
 TypeId Controller::GetTypeId(void){
 	static TypeId tid = TypeId("ns3::Controller")
@@ -29,7 +30,7 @@ m_totalLength = 20;
 m_plt = new uint16_t[m_totalLength];
 m_pltLength = 0;
 m_rpTotalLength = 20;
-m_rp = new uint16_t[m_rpTotalLength];
+m_rp = new uint16_t[m_rpTotalLength*3];
 m_rpLength = 0;
 m_sendSocket = 0;
 m_recvSocket = 0;
@@ -47,7 +48,7 @@ Controller::~Controller(){
 	delete[] m_data;
 }
 void Controller::setFill(uint8_t *fill, uint16_t size){
-	NS_LOG_FUNCTION(this<<size);
+	//NS_LOG_FUNCTION(this<<size);
 	m_data = new uint8_t[size];
 	m_size = size;
 	memcpy(m_data,fill,size);
@@ -118,33 +119,43 @@ void Controller::HandleRead(Ptr<Socket> socket){
 			//lockingStructure[lid][0,1,2] gives lanes required to be locked
 			if((lanes[lockingStructure[req->lid][0]]==0) &&
 					(lanes[lockingStructure[req->lid][1]]==0) &&
-					(lanes[lockingStructure[req->lid][2]]==0)){
+					(lanes[lockingStructure[req->lid][2]]==0)){   //all lanes are already locked
 				addToPlt(req->vid);
+				lsl[req->lid] = req->vid;
 				permit_msg plt;
 				plt.len = m_pltLength;
 				plt.plt = m_plt;
 				plt.type = PERMIT;
+				NS_LOG_INFO("sending permit as all lanes are already locked lsl is "<<lsl[req->lid]<<"plt array is:");
+				for(int i=0;i<m_pltLength;i++){
+					NS_LOG_INFO(m_plt[i]);
+				}
 				setFill((uint8_t*)(&plt),sizeof(permit_msg));
 				Ptr<Packet> p = Create<Packet>(m_data,m_size);
 				m_sendSocket->Send(p);
 			}
-			if((lanes[lockingStructure[req->lid][0]]==-1) &&
+			else if((lanes[lockingStructure[req->lid][0]]==-1) &&
 					(lanes[lockingStructure[req->lid][1]]==-1) &&
-					(lanes[lockingStructure[req->lid][2]]==-1)){
+					(lanes[lockingStructure[req->lid][2]]==-1)){    //all lanes are unlocked
 				lanes[lockingStructure[req->lid][0]]=0;
 				lanes[lockingStructure[req->lid][1]]=0;
 				lanes[lockingStructure[req->lid][2]]=0;
 				addToPlt(req->vid);
+				lsl[req->lid] = req->vid;
 				permit_msg plt;
 				plt.len = m_pltLength;
 				plt.plt = m_plt;
 				plt.type = PERMIT;
 				setFill((uint8_t*)(&plt),sizeof(permit_msg));
 				Ptr<Packet> p = Create<Packet>(m_data,m_size);
+				NS_LOG_INFO("sending permit as all lanes are  unlocked lsl is " <<lsl[req->lid] <<"plt array is:");
+				for(int i=0;i<m_pltLength;i++){
+					NS_LOG_INFO(m_plt[i]);
+				}
 				m_sendSocket->Send(p);
 			}
 			else{
-				addToRp(req->vid);
+				addToRp(req->vid,req->lid);
 			}
 			mutexLanes.Unlock();
 			NS_LOG_INFO("After lock");
@@ -155,38 +166,44 @@ void Controller::HandleRead(Ptr<Socket> socket){
 					packet->GetSize()<<" bytes from "
 					<<InetSocketAddress::ConvertFrom(from).GetIpv4()<< "port"
 					<<InetSocketAddress::ConvertFrom(from).GetPort()
-					<<" Vehicle sending request is "<<release->vid<<" and its lane number is "<<release->lid);
+					<<" Vehicle sending request is "<<release->vid<<" and its lane number is "<<release->lid<<" lsl is"<<lsl[release->lid]);
 			mutexLanes.Lock();
-			if(/*m_plt[m_pltLength-1] == release->vid*/1){ //implement a method to store the vid which will be used to unlock the lsli
+			if(lsl[release->lid] >= 0 && lsl[release->lid] == release->vid){ //implement a method to store the vid which will be used to unlock the lsli
 				lanes[lockingStructure[release->lid][0]]=-1;
 				lanes[lockingStructure[release->lid][1]]=-1;
 				lanes[lockingStructure[release->lid][2]]=-1;
 				m_pltLength = 0;
+				lsl[release->lid] = -1;
 			}
 			for(int i=0;i<m_rpLength;i++){  //implement a structure to remove the element from rp which can be in between too in the list
-				if((lanes[lockingStructure[m_rp[i]][0]]==0) &&
-						(lanes[lockingStructure[m_rp[i]][1]]==0) &&
-						(lanes[lockingStructure[m_rp[i]][2]]==0)){
-					addToPlt(m_rp[i]);
+				NS_LOG_INFO("m_rp["<<i<<"] is"<<m_rp[3*i]<<" m_rp["<<i<<"][2]"<<m_rp[3*i+2]);
+				if((m_rp[3*i+2] == 0) && (lanes[lockingStructure[m_rp[3*i]][0]]==0) &&
+						(lanes[lockingStructure[m_rp[3*i]][1]]==0) &&
+						(lanes[lockingStructure[m_rp[3*i]][2]]==0)){
+					addToPlt(m_rp[3*i]);
 					permit_msg plt;
 					plt.len = m_pltLength;
 					plt.plt = m_plt;
 					plt.type = PERMIT;
+					lsl[m_rp[3*i+1]] = m_rp[3*i];
+					m_rp[3*i+2]=1;
 					setFill((uint8_t*)(&plt),sizeof(permit_msg));
 					Ptr<Packet> p = Create<Packet>(m_data,m_size);
 					m_sendSocket->Send(p);
 				}
-				if((lanes[lockingStructure[m_rp[i]][0]]==-1) &&
-						(lanes[lockingStructure[m_rp[i]][1]]==-1) &&
-						(lanes[lockingStructure[m_rp[i]][2]]==-1)){
-					lanes[lockingStructure[m_rp[i]][0]]=0;
-					lanes[lockingStructure[m_rp[i]][1]]=0;
-					lanes[lockingStructure[m_rp[i]][2]]=0;
-					addToPlt(m_rp[i]);
+				else if((m_rp[3*i+2] == 0) && (lanes[lockingStructure[m_rp[3*i]][0]]==-1) &&
+						(lanes[lockingStructure[m_rp[3*i]][1]]==-1) &&
+						(lanes[lockingStructure[m_rp[3*i]][2]]==-1)){
+					lanes[lockingStructure[m_rp[3*i]][0]]=0;
+					lanes[lockingStructure[m_rp[3*i]][1]]=0;
+					lanes[lockingStructure[m_rp[3*i]][2]]=0;
+					addToPlt(m_rp[3*i]);
 					permit_msg plt;
 					plt.len = m_pltLength;
 					plt.plt = m_plt;
 					plt.type = PERMIT;
+					lsl[m_rp[3*i+1]] = m_rp[3*i];
+					m_rp[3*i+2]=1;
 					setFill((uint8_t*)(&plt),sizeof(permit_msg));
 					Ptr<Packet> p = Create<Packet>(m_data,m_size);
 					m_sendSocket->Send(p);
@@ -213,21 +230,27 @@ void Controller::addToPlt(uint16_t vid){
 	m_pltLength++;
 	m_plt[m_pltLength-1]=vid;
 }
-void Controller::addToRp(uint16_t vid){
+void Controller::addToRp(uint16_t vid,uint16_t lid){
 	if(m_rpLength < m_rpTotalLength){
 		m_rpLength++;
-		m_rp[m_rpLength-1]=vid;
+		m_rp[3*(m_rpLength-1)]=vid;
+		m_rp[3*(m_rpLength-1)+1]=lid;
+		m_rp[3*(m_rpLength-1)+2]=0;
 		return;
 	}
 	m_rpTotalLength+=20;
-	uint16_t *rp = new uint16_t[m_rpTotalLength];
+	uint16_t *rp = new uint16_t[3*m_rpTotalLength];
 	for(int i=0;i<m_rpLength;i++){
-		rp[i]=m_rp[i];
+		rp[3*i]=m_rp[3*i];
+		rp[3*i+1]=m_rp[3*i+1];
+		rp[3*i+2]=m_rp[3*i+2];
 	}
 	delete[] m_rp;
 	m_rp = rp;
 	m_rpLength++;
-	m_rp[m_rpLength-1]=vid;
+	m_rp[3*(m_rpLength-1)]=vid;
+	m_rp[3*(m_rpLength-1)+1]=lid;
+	m_rp[3*(m_rpLength-1)+1]=0;
 }
 }
 

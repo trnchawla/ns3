@@ -57,6 +57,7 @@ public:
 	static TypeId GetTypeId(void);
 	static int totalNodes;
 	static uint8_t lockingStructure[8][3];
+	static uint16_t vpm[8];
 	Vehicle();
 	virtual ~Vehicle();
 	void setRemote(Ipv4Address ip,uint16_t port);
@@ -68,6 +69,7 @@ public:
 	void setFill(uint8_t fill, uint32_t datasize);
 	void setFill(uint8_t *fill,uint32_t fillsize,uint32_t datasize);
 	void setLane(uint16_t laneNumber);
+	void SetVPM(uint16_t lane,uint16_t vpm);
 protected:
 	virtual void DoDispose(void);
 private:
@@ -78,6 +80,7 @@ private:
 	void Send(void);
 	void Release(void);
 	void HandleRead(Ptr<Socket> socket);
+
 	uint32_t m_count; //max number of packets the vehicle can sent
 	Time m_interval; //Packet intersend time
 	uint32_t m_size; //size of sent packet

@@ -64,6 +64,9 @@ main (int argc, char *argv[])
   clientApps.Start (Seconds (2.0));
   clientApps.Stop (Seconds (10.0));
 
+  AsciiTraceHelper ascii;
+  pointToPoint.EnableAsciiAll(ascii.CreateFileStream("first.tr"));
+
   Simulator::Run ();
   Simulator::Destroy ();
   return 0;

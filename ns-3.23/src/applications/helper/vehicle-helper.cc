@@ -30,6 +30,9 @@ void VehicleHelper::SetFill(Ptr<Application> app,uint8_t * fill,uint32_t fillLen
 void VehicleHelper::SetLane(Ptr<Application> app, uint16_t laneNumber){
 	app->GetObject<Vehicle>()->setLane(laneNumber);
 }
+void VehicleHelper::SetVPM(Ptr<Application> app,uint16_t laneNumber,uint16_t vpm){
+	app->GetObject<Vehicle>()->SetVPM(laneNumber, vpm);
+}
 ApplicationContainer VehicleHelper::Install(Ptr<Node> node) const{
 	return ApplicationContainer(InstallPriv(node));
 }

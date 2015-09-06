@@ -36,23 +36,27 @@ Lane of Vehicle   Lanes to be locked
 namespace ns3{
 class Controller: public Application{
 public:
+	volatile static uint16_t m_np;
 	static SystemMutex mutexLanes;
 	static TypeId GetTypeId(void);
 	static int16_t lanes[8];
 	static uint16_t lockingStructure[8][3];
 	static int16_t lsl[8];
+	static int64_t turnTime[8][2]; //turnTime[lid]==>[requestTime][PermitTime]
+	static uint64_t queueLength[8];
 	Controller();
 	~Controller();
 	void setFill(uint8_t *fill,uint16_t size);
 	void HandleRead(Ptr<Socket> socket);
 	void addToPlt(uint16_t vid);
 	void addToRp(uint16_t vid,uint16_t lid);
+	void setNp(uint16_t np);
 protected:
 	virtual void DoDispose(void);
 private:
 	virtual void StartApplication(void);
 	virtual void StopApplication(void);
-	volatile uint16_t m_np;
+
 	//m_rp vehicles in queue, m_rpTotalLength length of memory allocated to rp queue,m_rpLength length used for rp
 	uint16_t *m_rp;
 	uint16_t m_rpTotalLength;
@@ -67,7 +71,6 @@ private:
 	uint16_t m_peerport;
 	Ptr<Socket> m_recvSocket;
 	enum {REQUEST,PERMIT,RELEASE};
-
 
 };
 }

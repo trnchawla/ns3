@@ -19,6 +19,7 @@ public:
 	void SetFill(Ptr<Application> app,uint8_t fill,uint32_t dataLength);
 	void SetFill(Ptr<Application> app,uint8_t *fill,uint32_t fillLength,uint32_t dataLength);
 	void SetLane(Ptr<Application> app, uint16_t laneNumber);
+	void SetVPM(Ptr<Application> app, uint16_t laneNumber, uint16_t vpm);
 	ApplicationContainer Install(Ptr<Node> node) const;
 	ApplicationContainer Install(std::string nodeName) const;
 	ApplicationContainer Install(NodeContainer c) const;

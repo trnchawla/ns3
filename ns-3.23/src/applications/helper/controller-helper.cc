@@ -14,6 +14,9 @@ ApplicationContainer ControllerHelper::Install(std::string nodeName) const{
 	Ptr<Node> node = Names::Find<Node>(nodeName);
 	return ApplicationContainer(InstallPriv(node));
 }
+void ControllerHelper::SetNp(Ptr<Application> app, uint16_t np){
+	app->GetObject<Controller>()->setNp(np);
+}
 ApplicationContainer ControllerHelper::Install(NodeContainer c) const{
 	ApplicationContainer apps;
 	for(NodeContainer::Iterator i = c.Begin();i!= c.End(); ++i){

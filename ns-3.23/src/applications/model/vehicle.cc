@@ -31,6 +31,7 @@ NS_LOG_COMPONENT_DEFINE ("VehicleApplication");
 NS_OBJECT_ENSURE_REGISTERED (Vehicle);
 int Vehicle::totalNodes=0;
 uint8_t Vehicle::lockingStructure[8][3] ={{0,6,7},{1,2,3},{0,1,2},{3,4,5},{2,3,4},{5,6,7},{4,5,6},{0,1,7}};
+uint16_t Vehicle::vpm[] ={8,8,8,8,8,8,8,8};
 TypeId Vehicle::GetTypeId(void){
 	static TypeId tid = TypeId("ns3::Vehicle")
 			.SetParent<Application>()
@@ -67,7 +68,9 @@ TypeId Vehicle::GetTypeId(void){
 					"ns3::Packet::TraceCallback");
 	return tid;
 }
-
+void Vehicle::SetVPM(uint16_t lane,uint16_t val){
+	vpm[lane] = val;
+}
 Vehicle::Vehicle(){
 	m_vid = totalNodes;
 	REQ_MSG.vid = m_vid;
@@ -140,7 +143,7 @@ void Vehicle::StartApplication(){
 	recvSink->Bind (local);
 	recvSink->SetRecvCallback (MakeCallback (&Vehicle::HandleRead,this));
 	//m_socket->SetRecvCallback(MakeCallback(&Vehicle::HandleRead,this));
-	ScheduleTransmit(Seconds(1.0));
+	ScheduleTransmit(Seconds(((( m_vid/8 ) / vpm[m_lane] ) * 60 )+ (60/vpm[m_lane])*((m_vid/8)%vpm[m_lane])));
 }
 void Vehicle::StopApplication(){
 	NS_LOG_FUNCTION(this);
@@ -293,8 +296,8 @@ void Vehicle::HandleRead(Ptr<Socket> socket){
 			if(pass){
 				m_state = PASSING;  //permit has been received now vehicle is in passing state
 				PermitRecTime = Simulator::Now().GetMilliSeconds();
-				NS_LOG_INFO("Vehicle:"<<m_vid<<" At time"<<Simulator::Now().GetSeconds()<<"Waiting time to get permit is:"
-						<<(PermitRecTime-RequestSendTime)<<"milliseconds");
+				NS_LOG_INFO("Vehicle:"<<m_vid<<" At time"<<Simulator::Now().GetSeconds()<<"Waiting time to get PERMIT "
+						<<(PermitRecTime-RequestSendTime)<<" milliseconds");
 				//schedule a release
 				Time rel;
 				if(m_lane%2 == 0)

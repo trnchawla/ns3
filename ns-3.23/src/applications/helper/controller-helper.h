@@ -16,6 +16,7 @@ public:
 	ApplicationContainer Install(std::string nodeName) const;
 	ApplicationContainer Install(NodeContainer c) const;
 	void SetAttribute(std::string name, const AttributeValue &value);
+	void SetNp(Ptr<Application> app, uint16_t np);
 private:
 	Ptr<Application> InstallPriv(Ptr<Node> node) const;
 	ObjectFactory m_factory;

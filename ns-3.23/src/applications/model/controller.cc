@@ -93,7 +93,7 @@ void Controller::StopApplication(){
 	}
 }
 void Controller::HandleRead(Ptr<Socket> socket){
-	NS_LOG_FUNCTION(this);
+	//NS_LOG_FUNCTION(this);
 	Ptr<Packet> packet;
 	Address from;
 	while((packet = socket->RecvFrom(from))){
@@ -112,7 +112,9 @@ void Controller::HandleRead(Ptr<Socket> socket){
 
 			NS_LOG_INFO("before lock");
 			mutexLanes.Lock();
+			//NS_LOG_INFO("Vid = "<<req->vid<<" Old1 queue++ length for lid "<<req->lid<<" is "<<queueLength[req->lid]);
 			queueLength[req->lid]++;
+			//NS_LOG_INFO("Vid = "<<req->vid<<" New1 queue++ length for lid "<<req->lid<<" is "<<queueLength[req->lid]);
 			if(turnTime[req->lid][0] == -1){
 				turnTime[req->lid][0] = Simulator::Now().GetMilliSeconds();
 				NS_LOG_INFO("Request received for lane "<<req->lid<<" at time "<<turnTime[req->lid][0]<<" milliseconds");
@@ -132,8 +134,10 @@ void Controller::HandleRead(Ptr<Socket> socket){
 					turnTime[req->lid][1] = Simulator::Now().GetMilliSeconds();
 					NS_LOG_INFO("TURNTIME:"<<req->lid<<" "<<turnTime[req->lid][1]-turnTime[req->lid][0]);
 				}
+				//NS_LOG_INFO("Vid = "<<req->vid<<" Old1 queue-- length for lid  "<<req->lid<<" is "<<queueLength[req->lid]);
 				queueLength[req->lid]--;
-				NS_LOG_INFO("sending permit as all lanes are already locked lsl is "<<lsl[req->lid]<<"plt array is:");
+				//NS_LOG_INFO("Vid = "<<req->vid<<" New1 queue-- length for lid  "<<req->lid<<" is "<<queueLength[req->lid]);
+				//NS_LOG_INFO("sending permit as all lanes are already locked lsl is "<<lsl[req->lid]<<"plt array is:");
 				for(int i=0;i<m_pltLength;i++){
 					NS_LOG_INFO(m_plt[i]);
 				}
@@ -153,14 +157,16 @@ void Controller::HandleRead(Ptr<Socket> socket){
 				plt.len = m_pltLength;
 				plt.plt = m_plt;
 				plt.type = PERMIT;
+				//NS_LOG_INFO("Vid = "<<req->vid<<" Old2 queue-- length for lid "<<req->lid<<" is "<<queueLength[req->lid]);
 				queueLength[req->lid]--;
+				//NS_LOG_INFO("Vid = "<<req->vid<<" New2 queue-- length for lid "<<req->lid<<" is "<<queueLength[req->lid]);
 				if(turnTime[req->lid][1] == -1){
 					turnTime[req->lid][1] = Simulator::Now().GetMilliSeconds();
 					NS_LOG_INFO("TURNTIME:"<<req->lid<<" "<<turnTime[req->lid][1]-turnTime[req->lid][0]);
 				}
 				setFill((uint8_t*)(&plt),sizeof(permit_msg));
 				Ptr<Packet> p = Create<Packet>(m_data,m_size);
-				NS_LOG_INFO("sending permit as all lanes are  unlocked lsl is " <<lsl[req->lid] <<"plt array is:");
+				//NS_LOG_INFO("sending permit as all lanes are  unlocked lsl is " <<lsl[req->lid] <<"plt array is:");
 				for(int i=0;i<m_pltLength;i++){
 					NS_LOG_INFO(m_plt[i]);
 				}
@@ -174,11 +180,11 @@ void Controller::HandleRead(Ptr<Socket> socket){
 		}
 		else if(*msgType == RELEASE){
 			release_msg * release = (release_msg *)data;
-			NS_LOG_INFO("Controller: At time "<<Simulator::Now().GetSeconds()<<"s controller received RELEASE message of size "<<
+			/*NS_LOG_INFO("Controller: At time "<<Simulator::Now().GetSeconds()<<"s controller received RELEASE message of size "<<
 					packet->GetSize()<<" bytes from "
 					<<InetSocketAddress::ConvertFrom(from).GetIpv4()<< "port"
 					<<InetSocketAddress::ConvertFrom(from).GetPort()
-					<<" Vehicle sending request is "<<release->vid<<" and its lane number is "<<release->lid<<" lsl is"<<lsl[release->lid]);
+					<<" Vehicle sending request is "<<release->vid<<" and its lane number is "<<release->lid<<" lsl is"<<lsl[release->lid]);*/
 			mutexLanes.Lock();
 			if(lsl[release->lid] >= 0 && lsl[release->lid] == release->vid){ //implement a method to store the vid which will be used to unlock the lsli
 				lanes[lockingStructure[release->lid][0]]=-1;
@@ -188,9 +194,11 @@ void Controller::HandleRead(Ptr<Socket> socket){
 				lsl[release->lid] = -1;
 				float avLength=0;
 				for(int i=0;i<8;i++){
+					NS_LOG_INFO("QueueLength of lid "<<i<<" is"<<queueLength[i]);
 					avLength+=queueLength[i];
 				}
 				avLength/=8;
+				m_np =(uint16_t) avLength+1;
 				NS_LOG_INFO("Average QUEUELENGTH before switching is "<<avLength);
 			}
 			else{
@@ -198,7 +206,7 @@ void Controller::HandleRead(Ptr<Socket> socket){
 				return;
 			}
 			for(int i=0;i<m_rpLength;i++){  //implement a structure to remove the element from rp which can be in between too in the list
-				NS_LOG_INFO("m_rp["<<i<<"] is"<<m_rp[3*i]<<" m_rp["<<i<<"][2]"<<m_rp[3*i+2]);
+				//NS_LOG_INFO("m_rp["<<i<<"] is"<<m_rp[3*i]<<" m_rp["<<i<<"][2]"<<m_rp[3*i+2]);
 				if((m_pltLength <= m_np) && (m_rp[3*i+2] == 0) && (lanes[lockingStructure[m_rp[3*i+1]][0]]==0) &&  //lockingStructure[lane][0,1,2]
 						(lanes[lockingStructure[m_rp[3*i+1]][1]]==0) &&
 						(lanes[lockingStructure[m_rp[3*i+1]][2]]==0)){
@@ -211,7 +219,9 @@ void Controller::HandleRead(Ptr<Socket> socket){
 						turnTime[m_rp[3*i+1]][1] = Simulator::Now().GetMilliSeconds();
 						NS_LOG_INFO("TURNTIME:"<<m_rp[3*i+1]<<" "<<turnTime[m_rp[3*i+1]][1]-turnTime[m_rp[3*i+1]][0]);
 					}
+					//NS_LOG_INFO("Vid = "<<m_rp[3*i]<<" Old3 queue-- length of lid "<<m_rp[3*i+1]<<" is "<<queueLength[m_rp[3*i+1]]);
 					queueLength[m_rp[3*i+1]]--;
+					//NS_LOG_INFO("Vid = "<<m_rp[3*i]<<" New3 queue-- length of lid "<<m_rp[3*i+1]<<" is "<<queueLength[m_rp[3*i+1]]);
 					lsl[m_rp[3*i+1]] = m_rp[3*i];
 					m_rp[3*i+2]=1;//making the entry in m_rp invalid 1 means invalid, 0 means valid to be considered to check for locks
 					setFill((uint8_t*)(&plt),sizeof(permit_msg));
@@ -229,7 +239,9 @@ void Controller::HandleRead(Ptr<Socket> socket){
 					plt.len = m_pltLength;
 					plt.plt = m_plt;
 					plt.type = PERMIT;
+					//NS_LOG_INFO("Vid = "<<m_rp[3*i]<<" Old4 queue-- length of lid "<<m_rp[3*i+1]<<" is "<<queueLength[m_rp[3*i+1]]);
 					queueLength[m_rp[3*i+1]]--;
+					//NS_LOG_INFO("Vid = "<<m_rp[3*i]<<" New4 queue-- length of lid "<<m_rp[3*i+1]<<" is "<<queueLength[m_rp[3*i+1]]);
 					if(turnTime[m_rp[3*i+1]][1] == -1){
 						turnTime[m_rp[3*i+1]][1] = Simulator::Now().GetMilliSeconds();
 						NS_LOG_INFO("TURNTIME:"<<m_rp[3*i+1]<<" "<<turnTime[m_rp[3*i+1]][1]-turnTime[m_rp[3*i+1]][0]);
@@ -263,11 +275,13 @@ void Controller::addToPlt(uint16_t vid){
 	m_plt[m_pltLength-1]=vid;
 }
 void Controller::addToRp(uint16_t vid,uint16_t lid){
+	//NS_LOG_INFO("addToRp vid = "<<vid<<" lid = "<<lid);
 	if(m_rpLength < m_rpTotalLength){
 		m_rpLength++;
 		m_rp[3*(m_rpLength-1)]=vid;
 		m_rp[3*(m_rpLength-1)+1]=lid;
 		m_rp[3*(m_rpLength-1)+2]=0;
+		NS_LOG_INFO("addToRp before returning vid = "<<m_rp[3*(m_rpLength-1)]<<" lid = "<<m_rp[3*(m_rpLength-1)+1]);
 		return;
 	}
 	m_rpTotalLength+=20;
@@ -282,7 +296,8 @@ void Controller::addToRp(uint16_t vid,uint16_t lid){
 	m_rpLength++;
 	m_rp[3*(m_rpLength-1)]=vid;
 	m_rp[3*(m_rpLength-1)+1]=lid;
-	m_rp[3*(m_rpLength-1)+1]=0;
+	m_rp[3*(m_rpLength-1)+2]=0;
+	//NS_LOG_INFO("addToRp before returning vid = "<<m_rp[3*(m_rpLength-1)]<<" lid = "<<m_rp[3*(m_rpLength-1)+1]);
 }
 }
 

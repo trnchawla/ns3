@@ -161,18 +161,18 @@ void Vehicle::StopApplication(){
 	Simulator::Cancel(m_sendEvent);
 }
 void Vehicle::setDataSize(uint32_t dataSize){
-	NS_LOG_FUNCTION(this<<dataSize);
+	//NS_LOG_FUNCTION(this<<dataSize);
 	delete [] m_data;
 	m_data = 0;
 	m_datasize = 0;
 	m_size = dataSize;
 }
 uint32_t Vehicle::getDataSize() const{
-	NS_LOG_FUNCTION(this);
+	//NS_LOG_FUNCTION(this);
 	return m_size;
 }
 void Vehicle::setFill(std::string fill){
-	NS_LOG_FUNCTION(this<<fill);
+	//NS_LOG_FUNCTION(this<<fill);
 	uint32_t dataSize = fill.size()+1;
 
 	if(dataSize != m_datasize){
@@ -184,7 +184,7 @@ void Vehicle::setFill(std::string fill){
 	m_size = dataSize;
 }
 void Vehicle::setFill(uint8_t fill,uint32_t dataSize){
-	NS_LOG_FUNCTION(this<<fill<<dataSize);
+	//NS_LOG_FUNCTION(this<<fill<<dataSize);
 	if(dataSize != m_datasize){
 		delete [] m_data;
 		m_data = new uint8_t[dataSize];
@@ -194,7 +194,7 @@ void Vehicle::setFill(uint8_t fill,uint32_t dataSize){
 	m_size = dataSize;
 }
 void Vehicle::setFill(uint8_t *fill,uint32_t fillSize , uint32_t dataSize){
-	NS_LOG_FUNCTION(this<<fill<<fillSize<<dataSize);
+	//NS_LOG_FUNCTION(this<<fill<<fillSize<<dataSize);
 	if(dataSize != m_datasize){
 		m_data = new uint8_t[dataSize];
 		m_datasize = dataSize;
@@ -226,7 +226,7 @@ void Vehicle::ScheduleRelease(Time dt){
 	m_relEvent = Simulator::Schedule(dt,&Vehicle::Release,this);
 }
 void Vehicle::Send(){
-	NS_LOG_FUNCTION(this<<REQ_MSG.vid<<REQ_MSG.type);
+	//NS_LOG_FUNCTION(this<<REQ_MSG.vid<<REQ_MSG.type);
 	NS_ASSERT(m_sendEvent.IsExpired());
 	Ptr<Packet> p;
     setFill((uint8_t*)(&REQ_MSG),sizeof(request_msg),sizeof(request_msg));
@@ -266,7 +266,7 @@ void Vehicle::Release(){
 	m_state = IDLE;
 }
 void Vehicle::HandleRead(Ptr<Socket> socket){
-	NS_LOG_FUNCTION(this<<socket);
+	//NS_LOG_FUNCTION(this<<socket);
 	Ptr<Packet> packet;
 	Address from;
 	while((packet = socket->RecvFrom(from))){
@@ -276,16 +276,16 @@ void Vehicle::HandleRead(Ptr<Socket> socket){
 		packet->CopyData(data,size_packet);
 		uint16_t * msgType = (uint16_t*)data;
 		if(*msgType == REQUEST){
-			request_msg * req = (request_msg *)data;
-			NS_LOG_INFO("Vehicle:"<<m_vid<<" At time "<<Simulator::Now().GetSeconds()<<"s client received "<<packet->GetSize() <<" bytes from "<<
+			//request_msg * req = (request_msg *)data;
+			/*NS_LOG_INFO("Vehicle:"<<m_vid<<" At time "<<Simulator::Now().GetSeconds()<<"s client received "<<packet->GetSize() <<" bytes from "<<
 						InetSocketAddress::ConvertFrom(from).GetIpv4() <<" port "<<
 						InetSocketAddress::ConvertFrom(from).GetPort()<<"Message Type is "<<req->type
-						<<" Vehicle sending request is "<<req->vid<<"and its lane number is"<<req->lid);
+						<<" Vehicle sending request is "<<req->vid<<"and its lane number is"<<req->lid);*/
 		}
 		else if(*msgType == PERMIT && m_state == WAITING){
 			permit_msg * permit = (permit_msg *)data;
-			NS_LOG_INFO("Vehicle:"<<m_vid<<" At time "<<Simulator::Now().GetSeconds()<<"permit received ,total number of vehicles in plt is"<<permit->len
-					<<" First two vehicles in plt is"<<permit->plt[0]<<" "<<permit->plt[1]);
+			/*NS_LOG_INFO("Vehicle:"<<m_vid<<" At time "<<Simulator::Now().GetSeconds()<<"permit received ,total number of vehicles in plt is"<<permit->len
+					<<" First two vehicles in plt is"<<permit->plt[0]<<" "<<permit->plt[1]);*/
 			bool pass = false;
 			for(uint16_t i = 0;i<permit->len;++i){
 				if(m_vid == permit->plt[i]){
